@@ -1,0 +1,9 @@
+apiVersion: data.packaging.carvel.dev/v1alpha1
+kind: PackageMetadata
+metadata:
+  creationTimestamp: null
+  name: argo-workflows.field.vmware.com
+spec:
+  displayName: argo-workflows
+  longDescription: installs Argo Workflows as a supervisor service
+  shortDescription: Argo Workflows

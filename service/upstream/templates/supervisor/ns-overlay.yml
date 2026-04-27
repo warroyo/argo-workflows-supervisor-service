@@ -1,0 +1,9 @@
+#@ load("@ytt:overlay", "overlay")
+
+#! Safety net for any resources that use .Release.Namespace directly rather than
+#! the argo-workflows.namespace helper (which already reads .Values.namespace via
+#! the _helpers.tpl override in this directory).
+#@overlay/match by=overlay.subset({"metadata": {"namespace": "argo"}}), expects="0+"
+---
+metadata:
+  namespace: {{ .Values.namespace }}

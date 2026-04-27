@@ -1,0 +1,75 @@
+# Supervisor service — automatically injected by the supervisor framework at install time.
+# The _helpers.tpl override in templates/supervisor/ maps this into the chart's
+# argo-workflows.namespace helper so all resources land in the correct namespace.
+namespace: ""
+
+# -- Container image configuration
+images:
+  pullPolicy: IfNotPresent
+
+# -- CRD install/upgrade via pre-install hook
+crds:
+  install: true
+  keep: true
+  # Use full schemas
+  full: true
+
+# -- Aggregate view/edit/admin ClusterRoles for argoproj.io resources into the
+# standard Kubernetes RBAC roles. Used in place of custom supervisor RBAC templates.
+createAggregateRoles: true
+
+# -- Allow workflows to run across all namespaces (set true for single-ns)
+singleNamespace: false
+
+workflow:
+  serviceAccount:
+    create: false
+    name: "argo-workflow"
+  rbac:
+    create: true
+
+controller:
+  # Run the controller on supervisor (CRX) nodes
+  nodeSelector:
+    kubernetes.io/os: CRX
+  replicas: 1
+  serviceAccount:
+    create: true
+  rbac:
+    create: true
+  clusterWorkflowTemplates:
+    enabled: true
+  securityContext:
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+server:
+  enabled: true
+  # Run the server on supervisor (CRX) nodes
+  nodeSelector:
+    kubernetes.io/os: CRX
+  replicas: 1
+  serviceAccount:
+    create: true
+  rbac:
+    create: true
+  clusterWorkflowTemplates:
+    enabled: true
+  # Auth modes: server (no auth), client (kubeconfig), sso (OIDC)
+  authModes:
+  - server
+  securityContext:
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    seccompProfile:
+      type: RuntimeDefault

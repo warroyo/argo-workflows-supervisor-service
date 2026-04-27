@@ -1,0 +1,11 @@
+apiVersion: vendir.k14s.io/v1alpha1
+kind: Config
+directories:
+- path: upstream
+  contents:
+  - helmChart:
+      name: argo-workflows
+      version: 1.0.13
+      repository:
+        url: https://argoproj.github.io/argo-helm
+    path: .

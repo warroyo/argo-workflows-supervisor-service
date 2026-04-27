@@ -1,0 +1,30 @@
+apiVersion: kctrl.carvel.dev/v1alpha1
+kind: PackageBuild
+metadata:
+  creationTimestamp: null
+  name: argo-workflows.field.vmware.com
+spec:
+  release:
+  - resource: {}
+  template:
+    spec:
+      app:
+        spec:
+          deploy:
+          - kapp: {}
+          template:
+          - helmTemplate:
+              name: argo-workflows
+              namespace: argo
+              path: upstream
+          - ytt:
+              ignoreUnknownComments: true
+              paths:
+              - '-'
+          - kbld: {}
+      export:
+      - imgpkgBundle:
+          image: ghcr.io/warroyo/argo-workflows-supervisor-service
+          useKbldImagesLock: true
+        includePaths:
+        - upstream

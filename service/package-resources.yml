@@ -1,0 +1,54 @@
+apiVersion: data.packaging.carvel.dev/v1alpha1
+kind: Package
+metadata:
+  creationTimestamp: null
+  name: argo-workflows.field.vmware.com.0.0.0
+spec:
+  refName: argo-workflows.field.vmware.com
+  releasedAt: null
+  template:
+    spec:
+      deploy:
+      - kapp: {}
+      fetch:
+      - git: {}
+      template:
+      - helmTemplate:
+          path: upstream
+      - ytt:
+          paths:
+          - '-'
+      - kbld: {}
+  valuesSchema:
+    openAPIv3: null
+  version: 0.0.0
+
+---
+apiVersion: data.packaging.carvel.dev/v1alpha1
+kind: PackageMetadata
+metadata:
+  creationTimestamp: null
+  name: argo-workflows.field.vmware.com
+spec:
+  displayName: argo-workflows
+  longDescription: installs Argo Workflows as a supervisor service
+  shortDescription: Argo Workflows
+
+---
+apiVersion: packaging.carvel.dev/v1alpha1
+kind: PackageInstall
+metadata:
+  annotations:
+    kctrl.carvel.dev/local-fetch-0: .
+  creationTimestamp: null
+  name: argo-workflows
+spec:
+  packageRef:
+    refName: argo-workflows.field.vmware.com
+    versionSelection:
+      constraints: 0.0.0
+  serviceAccountName: argo-workflows-sa
+status:
+  conditions: null
+  friendlyDescription: ""
+  observedGeneration: 0
