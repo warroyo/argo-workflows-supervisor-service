@@ -1,0 +1,1844 @@
+apiVersion: data.packaging.carvel.dev/v1alpha1
+kind: Package
+metadata:
+  creationTimestamp: null
+  name: argo-workflows.field.vmware.com.1.0.13
+spec:
+  refName: argo-workflows.field.vmware.com
+  releasedAt: "2026-04-27T19:20:39Z"
+  template:
+    spec:
+      deploy:
+      - kapp: {}
+      fetch:
+      - imgpkgBundle:
+          image: ghcr.io/warroyo/argo-workflows-supervisor-service@sha256:6ea1c607f92d12547b14303370308244e080be610189246735fc071543f378a6
+      template:
+      - helmTemplate:
+          name: argo-workflows
+          namespace: argo
+          path: upstream
+      - ytt:
+          ignoreUnknownComments: true
+          paths:
+          - '-'
+      - kbld:
+          paths:
+          - '-'
+          - .imgpkg/images.yml
+  valuesSchema:
+    openAPIv3:
+      properties:
+        apiVersionOverrides:
+          description: Override APIVersions
+          properties:
+            autoscaling:
+              default: ""
+              description: String to override apiVersion of autoscaling rendered by
+                this helm chart
+              type: string
+            cloudgoogle:
+              default: ""
+              description: String to override apiVersion of GKE resources rendered
+                by this helm chart
+              type: string
+            monitoring:
+              default: ""
+              description: String to override apiVersion of monitoring CRDs (ServiceMonitor)
+                rendered by this helm chart
+              type: string
+          type: object
+        artifactRepository:
+          properties:
+            archiveLogs:
+              default: false
+              description: Archive the main container logs as an artifact
+              type: boolean
+            azure:
+              default: {}
+              description: 'bucket: <project>-argo keyFormat: "{{ \"{{workflow.namespace}}/{{workflow.name}}/{{pod.name}}\"
+                }}" # serviceAccountKeySecret is a secret selector. # It references
+                the k8s secret named ''my-gcs-credentials''. # This secret is expected
+                to have the key ''serviceAccountKey'', # containing the base64 encoded
+                credentials # to the bucket. # # If it''s running on GKE and Workload
+                Identity is used, # serviceAccountKeySecret is not needed. serviceAccountKeySecret:   name:
+                my-gcs-credentials   key: serviceAccountKey -- Store artifact in Azure
+                Blob Storage @default -- `{}` (See [values.yaml])'
+              type: object
+            gcs:
+              default: {}
+              description: '# Note the `key` attribute is not the actual secret, it''s
+                the PATH to # the contents in the associated secret, as defined by
+                the `name` attribute. accessKeySecret:   name: "{{ .Release.Name }}-minio"   key:
+                accesskey secretKeySecret:   name: "{{ .Release.Name }}-minio"   key:
+                secretkey sessionTokenSecret:   name: "{{ .Release.Name }}-minio"   key:
+                sessionToken # insecure will disable TLS. Primarily used for minio
+                installs not configured with TLS insecure: false caSecret:   name:
+                ca-root   key: cert.pem bucket: endpoint: region: roleARN: useSDKCreds:
+                true encryptionOptions:   enableEncryption: true -- Store artifact
+                in a GCS object store @default -- `{}` (See [values.yaml])'
+              type: object
+            s3:
+              default: {}
+              description: Store artifact in a S3-compliant object store @default
+                -- See [values.yaml]
+              type: object
+          type: object
+        artifactRepositoryRef:
+          default: {}
+          description: The section of [artifact repository ref](https://argo-workflows.readthedocs.io/en/stable/artifact-repository-ref/).
+            Each map key is the name of configmap @default -- `{}` (See [values.yaml])
+          type: object
+        commonLabels:
+          default: {}
+          description: Labels to set on all resources
+          type: object
+        controller:
+          properties:
+            affinity:
+              default: {}
+              description: Assign custom [affinity] rules
+              type: object
+            clusterWorkflowTemplates:
+              properties:
+                enabled:
+                  default: true
+                  description: Create a ClusterRole and CRB for the controller to
+                    access ClusterWorkflowTemplates.
+                  type: boolean
+                serviceAccounts:
+                  default: []
+                  description: Extra service accounts to be added to the ClusterRoleBinding
+                  items: {}
+                  type: array
+              type: object
+            columns:
+              default: []
+              description: 'Configure Argo Server to show custom [columns] Ref: https://github.com/argoproj/argo-workflows/pull/10693'
+              items: {}
+              type: array
+            configMap:
+              properties:
+                annotations:
+                  default: {}
+                  description: ConfigMap annotations
+                  type: object
+                create:
+                  default: true
+                  description: Create a ConfigMap for the controller
+                  type: boolean
+                name:
+                  default: ""
+                  description: ConfigMap name
+                  type: string
+              type: object
+            cronWorkflowWorkers:
+              description: Number of cron workflow workers Only valid for 3.5+
+              oneOf:
+              - default: null
+                nullable: true
+                type: integer
+              - default: null
+                nullable: true
+                type: number
+              - default: null
+                nullable: true
+                type: boolean
+              - default: null
+                nullable: true
+                type: string
+              - default: null
+                nullable: true
+                type: object
+              - default: null
+                items: {}
+                nullable: true
+                type: array
+            deploymentAnnotations:
+              default: {}
+              description: deploymentAnnotations is an optional map of annotations
+                to be applied to the controller Deployment
+              type: object
+            extraArgs:
+              default: []
+              description: Extra arguments to be added to the controller
+              items: {}
+              type: array
+            extraContainers:
+              default: []
+              description: Extra containers to be added to the controller deployment
+              items: {}
+              type: array
+            extraEnv:
+              default: []
+              description: Extra environment variables to provide to the controller
+                container
+              items: {}
+              type: array
+            extraInitContainers:
+              default: []
+              description: Enables init containers to be added to the controller deployment
+              items: {}
+              type: array
+            failedPodRestart:
+              properties:
+                enabled:
+                  default: false
+                  description: 'Enable to restart of pods that fail before entering
+                    Running state. This is useful for recovering from transient infrastructure
+                    issues like node eviction due to DiskPressure or MemoryPressure
+                    without requiring a retryStrategy on every template. ref: https://argo-workflows.readthedocs.io/en/latest/pod-restarts/'
+                  type: boolean
+                maxRestarts:
+                  default: 3
+                  description: Maximum number of automatic restarts per node before
+                    giving up.
+                  type: integer
+              type: object
+            image:
+              properties:
+                registry:
+                  default: quay.io
+                  description: Registry to use for the controller
+                  type: string
+                repository:
+                  default: argoproj/workflow-controller
+                  description: Registry to use for the controller
+                  type: string
+                tag:
+                  default: ""
+                  description: Image tag for the workflow controller. Defaults to
+                    `.Values.images.tag`.
+                  type: string
+              type: object
+            initialDelay:
+              description: 'Resolves ongoing, uncommon AWS EKS bug: https://github.com/argoproj/argo-workflows/pull/4224'
+              oneOf:
+              - default: null
+                nullable: true
+                type: integer
+              - default: null
+                nullable: true
+                type: number
+              - default: null
+                nullable: true
+                type: boolean
+              - default: null
+                nullable: true
+                type: string
+              - default: null
+                nullable: true
+                type: object
+              - default: null
+                items: {}
+                nullable: true
+                type: array
+            instanceID:
+              properties:
+                enabled:
+                  default: false
+                  description: 'Configures the controller to filter workflow submissions
+                    to only those which have a matching instanceID attribute. NOTE:
+                    If `instanceID.enabled` is set to `true` then either `instanceID.userReleaseName`
+                    or `instanceID.explicitID` must be defined.'
+                  type: boolean
+                explicitID:
+                  default: ""
+                  description: Use a custom instanceID
+                  type: string
+                useReleaseName:
+                  default: false
+                  description: Use ReleaseName as instanceID
+                  type: boolean
+              type: object
+            kubeConfig:
+              default: {}
+              description: Configure when workflow controller runs in a different
+                k8s cluster with the workflow workloads, or needs to communicate with
+                the k8s apiserver using an out-of-cluster kubeconfig secret. @default
+                -- `{}` (See [values.yaml])
+              type: object
+            links:
+              default: []
+              description: 'Configure Argo Server to show custom [links] Ref: https://argo-workflows.readthedocs.io/en/stable/links/'
+              items: {}
+              type: array
+            livenessProbe:
+              description: Configure liveness [probe] for the controller @default
+                -- See [values.yaml]
+              properties:
+                failureThreshold:
+                  default: 3
+                  type: integer
+                httpGet:
+                  properties:
+                    path:
+                      default: /healthz
+                      type: string
+                    port:
+                      default: 6060
+                      type: integer
+                  type: object
+                initialDelaySeconds:
+                  default: 90
+                  type: integer
+                periodSeconds:
+                  default: 60
+                  type: integer
+                timeoutSeconds:
+                  default: 30
+                  type: integer
+              type: object
+            loadBalancerClass:
+              default: ""
+              description: The class of the load balancer implementation
+              type: string
+            loadBalancerSourceRanges:
+              default: []
+              description: Source ranges to allow access to service from. Only applies
+                to service type `LoadBalancer`
+              items: {}
+              type: array
+            logging:
+              properties:
+                format:
+                  default: text
+                  description: 'Set the logging format (one of: `text`, `json`)'
+                  type: string
+                globallevel:
+                  default: "0"
+                  description: Set the glog logging level
+                  type: string
+                level:
+                  default: info
+                  description: 'Set the logging level (one of: `debug`, `info`, `warn`,
+                    `error`)'
+                  type: string
+              type: object
+            metricsConfig:
+              description: 'podPortName: http'
+              properties:
+                enabled:
+                  default: false
+                  description: Enables prometheus metrics server
+                  type: boolean
+                headlessService:
+                  default: false
+                  description: Flag to enable headless service
+                  type: boolean
+                honorLabels:
+                  default: false
+                  description: 'When true, honorLabels preserves the metric’s labels
+                    when they collide with the target’s labels. Ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#honorlabels'
+                  type: boolean
+                ignoreErrors:
+                  default: false
+                  description: Flag that instructs prometheus to ignore metric emission
+                    errors.
+                  type: boolean
+                interval:
+                  default: 30s
+                  description: Frequency at which prometheus scrapes metrics
+                  type: string
+                metricRelabelings:
+                  default: []
+                  description: 'ServiceMonitor metric relabel configs to apply to
+                    samples before ingestion Ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint'
+                  items: {}
+                  type: array
+                metricsTTL:
+                  default: ""
+                  description: How often custom metrics are cleared from memory
+                  type: string
+                modifiers:
+                  default: {}
+                  description: 'Manipulate the metrics created by the workflow controller
+                    Ref: https://argo-workflows.readthedocs.io/en/latest/metrics/#modifiers'
+                  type: object
+                path:
+                  default: /metrics
+                  description: Path is the path where metrics are emitted. Must start
+                    with a "/".
+                  type: string
+                port:
+                  default: 9090
+                  description: Port is the port where metrics are emitted
+                  type: integer
+                portName:
+                  default: metrics
+                  description: Container metrics port name
+                  type: string
+                relabelings:
+                  default: []
+                  description: 'ServiceMonitor relabel configs to apply to samples
+                    before scraping Ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig'
+                  items: {}
+                  type: array
+                scheme:
+                  default: http
+                  description: serviceMonitor scheme
+                  type: string
+                secure:
+                  default: false
+                  description: Flag that use a self-signed cert for TLS
+                  type: boolean
+                servicePort:
+                  default: 8080
+                  description: Service metrics port
+                  type: integer
+                servicePortName:
+                  default: metrics
+                  description: Service metrics port name
+                  type: string
+                targetLabels:
+                  default: []
+                  description: 'ServiceMonitor will add labels from the service to
+                    the Prometheus metric Ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec'
+                  items: {}
+                  type: array
+              type: object
+            name:
+              default: workflow-controller
+              description: Workflow controller name string
+              type: string
+            namespaceParallelism:
+              description: Limits the maximum number of incomplete workflows in a
+                namespace
+              oneOf:
+              - default: null
+                nullable: true
+                type: integer
+              - default: null
+                nullable: true
+                type: number
+              - default: null
+                nullable: true
+                type: boolean
+              - default: null
+                nullable: true
+                type: string
+              - default: null
+                nullable: true
+                type: object
+              - default: null
+                items: {}
+                nullable: true
+                type: array
+            navColor:
+              default: ""
+              description: Set ui navigation bar background color
+              type: string
+            nodeEvents:
+              properties:
+                enabled:
+                  default: true
+                  description: 'Enable to emit events on node completion. This can
+                    take up a lot of space in k8s (typically etcd) resulting in errors
+                    when trying to create new events: "Unable to create audit event:
+                    etcdserver: mvcc: database space exceeded"'
+                  type: boolean
+              type: object
+            nodeSelector:
+              description: Chart default is linux; CRX targets VMware Supervisor control
+                plane nodes.
+              properties:
+                kubernetes.io/os:
+                  default: CRX
+                  type: string
+              type: object
+            parallelism:
+              description: parallelism dictates how many workflows can be running
+                at the same time
+              oneOf:
+              - default: null
+                nullable: true
+                type: integer
+              - default: null
+                nullable: true
+                type: number
+              - default: null
+                nullable: true
+                type: boolean
+              - default: null
+                nullable: true
+                type: string
+              - default: null
+                nullable: true
+                type: object
+              - default: null
+                items: {}
+                nullable: true
+                type: array
+            pdb:
+              properties:
+                enabled:
+                  default: false
+                  description: Configure [Pod Disruption Budget] for the controller
+                    pods
+                  type: boolean
+              type: object
+            persistence:
+              default: {}
+              description: 'enable Workflow Archive to store the status of workflows.
+                Postgres and MySQL (>= 5.7.8) are available. Ref: https://argo-workflows.readthedocs.io/en/stable/workflow-archive/'
+              type: object
+            podAnnotations:
+              default: {}
+              description: podAnnotations is an optional map of annotations to be
+                applied to the controller Pods
+              type: object
+            podCleanupWorkers:
+              description: Number of pod cleanup workers
+              oneOf:
+              - default: null
+                nullable: true
+                type: integer
+              - default: null
+                nullable: true
+                type: number
+              - default: null
+                nullable: true
+                type: boolean
+              - default: null
+                nullable: true
+                type: string
+              - default: null
+                nullable: true
+                type: object
+              - default: null
+                items: {}
+                nullable: true
+                type: array
+            podGCDeleteDelayDuration:
+              default: ""
+              description: The duration in seconds before the pods in the GC queue
+                get deleted. A zero value indicates that the pods will be deleted
+                immediately. @default -- `5s` (Argo Workflows default)
+              type: string
+            podGCGracePeriodSeconds:
+              description: Specifies the duration in seconds before a terminating
+                pod is forcefully killed. A zero value indicates that the pod will
+                be forcefully terminated immediately. @default -- `30` seconds (Kubernetes
+                default)
+              oneOf:
+              - default: null
+                nullable: true
+                type: integer
+              - default: null
+                nullable: true
+                type: number
+              - default: null
+                nullable: true
+                type: boolean
+              - default: null
+                nullable: true
+                type: string
+              - default: null
+                nullable: true
+                type: object
+              - default: null
+                items: {}
+                nullable: true
+                type: array
+            podLabels:
+              default: {}
+              description: Optional labels to add to the controller pods
+              type: object
+            podSecurityContext:
+              default: {}
+              description: SecurityContext to set on the controller pods
+              type: object
+            priorityClassName:
+              default: ""
+              description: 'Leverage a PriorityClass to ensure your pods survive resource
+                shortages. ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/'
+              type: string
+            rbac:
+              properties:
+                accessAllSecrets:
+                  default: false
+                  description: Allows controller to get, list and watch all k8s secrets.
+                    Can only be used if secretWhitelist is empty.
+                  type: boolean
+                create:
+                  default: true
+                  description: Adds Role and RoleBinding for the controller.
+                  type: boolean
+                secretWhitelist:
+                  default: []
+                  description: Allows controller to get, list, and watch certain k8s
+                    secrets
+                  items: {}
+                  type: array
+                writeConfigMaps:
+                  default: false
+                  description: Allows controller to create and update ConfigMaps.
+                    Enables memoization feature
+                  type: boolean
+              type: object
+            replicas:
+              default: 1
+              description: The number of controller pods to run
+              type: integer
+            resourceRateLimit:
+              default: {}
+              description: Globally limits the rate at which pods are created. This
+                is intended to mitigate flooding of the Kubernetes API server by workflows
+                with a large amount of parallel nodes.
+              type: object
+            resources:
+              default: {}
+              description: Resource limits and requests for the controller
+              type: object
+            retentionPolicy:
+              default: {}
+              description: Workflow retention by number of workflows
+              type: object
+            revisionHistoryLimit:
+              default: 10
+              description: The number of revisions to keep.
+              type: integer
+            securityContext:
+              description: the controller container's securityContext
+              properties:
+                allowPrivilegeEscalation:
+                  default: false
+                  type: boolean
+                capabilities:
+                  properties:
+                    drop:
+                      default: []
+                      items:
+                        default: ALL
+                        type: string
+                      type: array
+                  type: object
+                readOnlyRootFilesystem:
+                  default: true
+                  type: boolean
+                runAsNonRoot:
+                  default: true
+                  type: boolean
+                seccompProfile:
+                  properties:
+                    type:
+                      default: RuntimeDefault
+                      type: string
+                  type: object
+              type: object
+            serviceAccount:
+              properties:
+                annotations:
+                  default: {}
+                  description: Annotations applied to created service account
+                  type: object
+                create:
+                  default: true
+                  description: Create a service account for the controller
+                  type: boolean
+                labels:
+                  default: {}
+                  description: Labels applied to created service account
+                  type: object
+                name:
+                  default: ""
+                  description: Service account name
+                  type: string
+              type: object
+            serviceAnnotations:
+              default: {}
+              description: Annotations to be applied to the controller Service
+              type: object
+            serviceLabels:
+              default: {}
+              description: Optional labels to add to the controller Service
+              type: object
+            serviceMonitor:
+              properties:
+                additionalLabels:
+                  default: {}
+                  description: Prometheus ServiceMonitor labels
+                  type: object
+                enabled:
+                  default: false
+                  description: Enable a prometheus ServiceMonitor
+                  type: boolean
+                namespace:
+                  default: ""
+                  description: Prometheus ServiceMonitor namespace
+                  type: string
+              type: object
+            serviceType:
+              default: ClusterIP
+              description: Service type of the controller Service
+              type: string
+            synchronization:
+              default: {}
+              description: 'enable Synchronization to use a database.  Postgres and
+                MySQL (>= 5.7.8) are available. Ref: https://argo-workflows.readthedocs.io/en/latest/workflow-controller-configmap/#syncconfig'
+              type: object
+            telemetryConfig:
+              description: controls the path and port for prometheus telemetry. Telemetry
+                is enabled and emitted in the same endpoint as metrics by default,
+                but can be overridden using this config.
+              properties:
+                enabled:
+                  default: false
+                  description: Enables prometheus telemetry server
+                  type: boolean
+                ignoreErrors:
+                  default: false
+                  description: Flag that instructs prometheus to ignore metric emission
+                    errors.
+                  type: boolean
+                interval:
+                  default: 30s
+                  description: Frequency at which prometheus scrapes telemetry data
+                  type: string
+                metricsTTL:
+                  default: ""
+                  description: How often custom metrics are cleared from memory
+                  type: string
+                path:
+                  default: /telemetry
+                  description: telemetry path
+                  type: string
+                port:
+                  default: 8081
+                  description: telemetry container port
+                  type: integer
+                scheme:
+                  default: http
+                  description: telemetry serviceMonitor scheme to use
+                  type: string
+                secure:
+                  default: false
+                  description: Flag that use a self-signed cert for TLS
+                  type: boolean
+                servicePort:
+                  default: 8081
+                  description: telemetry service port
+                  type: integer
+                servicePortName:
+                  default: telemetry
+                  description: telemetry service port name
+                  type: string
+              type: object
+            tolerations:
+              default: []
+              description: '[Tolerations] for use with node taints'
+              items: {}
+              type: array
+            topologySpreadConstraints:
+              default: []
+              description: 'Assign custom [TopologySpreadConstraints] rules to the
+                workflow controller Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
+                If labelSelector is left out, it will default to the labelSelector
+                configuration of the deployment'
+              items: {}
+              type: array
+            volumeMounts:
+              default: []
+              description: Additional volume mounts to the controller main container
+              items: {}
+              type: array
+            volumes:
+              default: []
+              description: Additional volumes to the controller pod
+              items: {}
+              type: array
+            workflowDefaults:
+              default: {}
+              description: 'Default values that will apply to all Workflows from this
+                controller, unless overridden on the Workflow-level. Only valid for
+                2.7+ See more: https://argo-workflows.readthedocs.io/en/stable/default-workflow-specs/'
+              type: object
+            workflowEvents:
+              properties:
+                enabled:
+                  default: true
+                  description: 'Enable to emit events on workflow status changes.
+                    This can take up a lot of space in k8s (typically etcd), resulting
+                    in errors when trying to create new events: "Unable to create
+                    audit event: etcdserver: mvcc: database space exceeded"'
+                  type: boolean
+              type: object
+            workflowNamespaces:
+              default: []
+              description: Specify all namespaces where this workflow controller instance
+                will manage workflows. This controls where the service account and
+                RBAC resources will be created. Only valid when singleNamespace is
+                false.
+              items:
+                default: default
+                type: string
+              type: array
+            workflowRestrictions:
+              default: {}
+              description: Restricts the Workflows that the controller will process.
+                Only valid for 2.9+
+              type: object
+            workflowTTLWorkers:
+              description: Number of workflow TTL workers
+              oneOf:
+              - default: null
+                nullable: true
+                type: integer
+              - default: null
+                nullable: true
+                type: number
+              - default: null
+                nullable: true
+                type: boolean
+              - default: null
+                nullable: true
+                type: string
+              - default: null
+                nullable: true
+                type: object
+              - default: null
+                items: {}
+                nullable: true
+                type: array
+            workflowWorkers:
+              description: Number of workflow workers
+              oneOf:
+              - default: null
+                nullable: true
+                type: integer
+              - default: null
+                nullable: true
+                type: number
+              - default: null
+                nullable: true
+                type: boolean
+              - default: null
+                nullable: true
+                type: string
+              - default: null
+                nullable: true
+                type: object
+              - default: null
+                items: {}
+                nullable: true
+                type: array
+          type: object
+        crds:
+          description: Custom resource configuration
+          properties:
+            annotations:
+              default: {}
+              description: Annotations to be added to all CRDs (only applies when
+                crds.full=false)
+              type: object
+            full:
+              default: true
+              description: Use full CRDs with complete OpenAPI schemas. When false,
+                uses minified CRDs with x-kubernetes-preserve-unknown-fields. Full
+                CRDs are very large and are installed via a pre-install/pre-upgrade
+                hook Job that uses server-side apply.
+              type: boolean
+            install:
+              default: true
+              description: Install and upgrade CRDs
+              type: boolean
+            keep:
+              default: true
+              description: Keep CRDs on chart uninstall
+              type: boolean
+            upgradeJob:
+              description: Configuration for the CRD install Job (only used when crds.full=true)
+              properties:
+                crdBaseURL:
+                  default: ""
+                  description: Override base URL to download full CRD YAML files from.
+                    Defaults to this chart's release tag on GitHub. Ignored if hostPath
+                    is set.
+                  type: string
+                extraEnv:
+                  default: []
+                  description: Extra environment variables to provide to the CRD install
+                    Job container
+                  items: {}
+                  type: array
+                hostPath:
+                  default: ""
+                  description: Host path to mount CRD files from (for local/CI testing).
+                    When set, CRDs are applied from this path instead of downloading.
+                  type: string
+                image:
+                  description: Image for the kubectl container that applies CRDs
+                  properties:
+                    repository:
+                      default: registry.k8s.io/kubectl
+                      description: Repository for the kubectl image
+                      type: string
+                    tag:
+                      default: v1.36.0
+                      description: Tag for the kubectl image
+                      type: string
+                  type: object
+                imagePullSecrets:
+                  default: []
+                  description: Image pull secrets for the CRD install Job
+                  items: {}
+                  type: array
+                nodeSelector:
+                  default: {}
+                  description: Node selector for the CRD install Job
+                  type: object
+                resources:
+                  default: {}
+                  description: Resources for the CRD install Job containers
+                  type: object
+                tolerations:
+                  default: []
+                  description: Tolerations for the CRD install Job
+                  items: {}
+                  type: array
+              type: object
+          type: object
+        createAggregateRoles:
+          default: true
+          description: 'Create ClusterRoles that extend existing ClusterRoles to interact
+            with Argo Workflows CRDs. Ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles'
+          type: boolean
+        customArtifactRepository:
+          default: {}
+          description: The section of custom artifact repository. Utilize a custom
+            artifact repository that is not one of the current base ones (s3, gcs,
+            azure)
+          type: object
+        emissary:
+          properties:
+            images:
+              default: []
+              description: 'The command/args for each image on workflow, needed when
+                the command is not specified and the emissary executor is used. See
+                more: https://argo-workflows.readthedocs.io/en/stable/workflow-executors/#emissary-emissary'
+              items: {}
+              type: array
+          type: object
+        executor:
+          description: controls how the init and wait container should be customized
+          properties:
+            args:
+              default: []
+              description: Passes arguments to the executor processes
+              items: {}
+              type: array
+            env:
+              default: []
+              description: Adds environment variables for the executor.
+              items: {}
+              type: array
+            image:
+              properties:
+                pullPolicy:
+                  default: ""
+                  description: Image PullPolicy to use for the Workflow Executors.
+                    Defaults to `.Values.images.pullPolicy`.
+                  type: string
+                registry:
+                  default: quay.io
+                  description: Registry to use for the Workflow Executors
+                  type: string
+                repository:
+                  default: argoproj/argoexec
+                  description: Repository to use for the Workflow Executors
+                  type: string
+                tag:
+                  default: ""
+                  description: Image tag for the workflow executor. Defaults to `.Values.images.tag`.
+                  type: string
+              type: object
+            resources:
+              default: {}
+              description: Resource limits and requests for the Workflow Executors
+              type: object
+            securityContext:
+              default: {}
+              description: sets security context for the executor container
+              type: object
+          type: object
+        extraObjects:
+          default: []
+          description: Array of extra K8s manifests to deploy
+          items: {}
+          type: array
+        fullnameOverride:
+          description: String to fully override "argo-workflows.fullname" template
+          oneOf:
+          - default: null
+            nullable: true
+            type: integer
+          - default: null
+            nullable: true
+            type: number
+          - default: null
+            nullable: true
+            type: boolean
+          - default: null
+            nullable: true
+            type: string
+          - default: null
+            nullable: true
+            type: object
+          - default: null
+            items: {}
+            nullable: true
+            type: array
+        images:
+          description: Supervisor-specific value overrides. Source of truth for supervisor
+            customizations. During `make sync` this is deep-merged (these values win)
+            into the full upstream chart values.yaml. Edit this file, not upstream/values.yaml.
+          properties:
+            pullPolicy:
+              default: IfNotPresent
+              description: Chart default is Always; IfNotPresent avoids unnecessary
+                pulls in supervisor environments.
+              type: string
+            pullSecrets:
+              default: []
+              description: Secrets with credentials to pull images from a private
+                registry
+              items: {}
+              type: array
+            tag:
+              default: ""
+              description: Common tag for Argo Workflows images. Defaults to `.Chart.AppVersion`.
+              type: string
+          type: object
+        kubeVersionOverride:
+          default: ""
+          description: Override the Kubernetes version, which is used to evaluate
+            certain manifests
+          type: string
+        mainContainer:
+          description: adds default config for main container that could be overriden
+            in workflows template
+          properties:
+            env:
+              default: []
+              description: Adds environment variables for the Workflow main container
+              items: {}
+              type: array
+            envFrom:
+              default: []
+              description: Adds reference environment variables for the Workflow main
+                container
+              items: {}
+              type: array
+            imagePullPolicy:
+              default: ""
+              description: imagePullPolicy to apply to Workflow main container. Defaults
+                to `.Values.images.pullPolicy`.
+              type: string
+            resources:
+              default: {}
+              description: Resource limits and requests for the Workflow main container
+              type: object
+            securityContext:
+              default: {}
+              description: sets security context for the Workflow main container
+              type: object
+          type: object
+        nameOverride:
+          description: String to partially override "argo-workflows.fullname" template
+          oneOf:
+          - default: null
+            nullable: true
+            type: integer
+          - default: null
+            nullable: true
+            type: number
+          - default: null
+            nullable: true
+            type: boolean
+          - default: null
+            nullable: true
+            type: string
+          - default: null
+            nullable: true
+            type: object
+          - default: null
+            items: {}
+            nullable: true
+            type: array
+        namespace:
+          default: ""
+          description: Custom value injected by the VMware Supervisor framework at
+            install time.
+          type: string
+        namespaceOverride:
+          default: ""
+          description: Override the namespace @default -- `.Release.Namespace`
+          type: string
+        server:
+          properties:
+            GKEbackendConfig:
+              description: Create a Google Backendconfig  for use with the GKE Ingress
+                Controller https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-configuration#configuring_ingress_features_through_backendconfig_parameters
+              properties:
+                enabled:
+                  default: false
+                  description: Enable BackendConfig custom resource for Google Kubernetes
+                    Engine
+                  type: boolean
+                spec:
+                  default: {}
+                  description: '[BackendConfigSpec]'
+                  type: object
+              type: object
+            GKEfrontendConfig:
+              description: Create a Google FrontendConfig Custom Resource, for use
+                with the GKE Ingress Controller https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#configuring_ingress_features_through_frontendconfig_parameters
+              properties:
+                enabled:
+                  default: false
+                  description: Enable FrontConfig custom resource for Google Kubernetes
+                    Engine
+                  type: boolean
+                spec:
+                  default: {}
+                  description: '[FrontendConfigSpec]'
+                  type: object
+              type: object
+            GKEmanagedCertificate:
+              description: Create a Google Managed Certificate for use with the GKE
+                Ingress Controller https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs
+              properties:
+                domains:
+                  default: []
+                  description: Domains for the Google Managed Certificate
+                  items:
+                    default: argoworkflows.example.com
+                    type: string
+                  type: array
+                enabled:
+                  default: false
+                  description: Enable ManagedCertificate custom resource for Google
+                    Kubernetes Engine.
+                  type: boolean
+              type: object
+            affinity:
+              default: {}
+              description: Assign custom [affinity] rules
+              type: object
+            authMode:
+              default: ""
+              description: Deprecated; use server.authModes instead.
+              type: string
+            authModes:
+              default: []
+              description: Chart default is []; server auth mode must be set explicitly.
+              items:
+                default: server
+                type: string
+              type: array
+            autoscaling:
+              description: Argo Server Horizontal Pod Autoscaler
+              properties:
+                behavior:
+                  default: {}
+                  description: Configures the scaling behavior of the target in both
+                    Up and Down directions. This is only available on HPA apiVersion
+                    `autoscaling/v2beta2` and newer
+                  type: object
+                enabled:
+                  default: false
+                  description: Enable Horizontal Pod Autoscaler ([HPA]) for the Argo
+                    Server
+                  type: boolean
+                maxReplicas:
+                  default: 5
+                  description: Maximum number of replicas for the Argo Server [HPA]
+                  type: integer
+                minReplicas:
+                  default: 1
+                  description: Minimum number of replicas for the Argo Server [HPA]
+                  type: integer
+                targetCPUUtilizationPercentage:
+                  default: 50
+                  description: Average CPU utilization percentage for the Argo Server
+                    [HPA]
+                  type: integer
+                targetMemoryUtilizationPercentage:
+                  default: 50
+                  description: Average memory utilization percentage for the Argo
+                    Server [HPA]
+                  type: integer
+              type: object
+            backendTLSPolicy:
+              description: 'Gateway API BackendTLSPolicy configuration NOTE: BackendTLSPolicy
+                support is in EXPERIMENTAL status Required for HTTPS backends when
+                using Gateway API Not all Gateway controllers support this resource
+                (e.g., Cilium does not support it yet)'
+              properties:
+                annotations:
+                  default: {}
+                  description: Additional BackendTLSPolicy annotations
+                  type: object
+                enabled:
+                  default: false
+                  description: Enable BackendTLSPolicy resource for Argo Workflows
+                    server (Gateway API)
+                  type: boolean
+                labels:
+                  default: {}
+                  description: Additional BackendTLSPolicy labels
+                  type: object
+                targetRefs:
+                  default: []
+                  description: Target references for the BackendTLSPolicy @default
+                    -- `[]` (See [values.yaml])
+                  items: {}
+                  type: array
+                validation:
+                  default: {}
+                  description: '- group: ""   kind: Service   name: argo-workflows-server   sectionName:
+                    https -- TLS validation configuration @default -- `{}` (See [values.yaml])'
+                  type: object
+              type: object
+            baseHref:
+              default: /
+              description: Value for base href in index.html. Used if the server is
+                running behind reverse proxy under subpath different from /. only
+                updates base url of resources on client side, it's expected that a
+                proxy server rewrites the request URL and gets rid of this prefix
+                https://github.com/argoproj/argo-workflows/issues/716#issuecomment-433213190
+              type: string
+            clusterWorkflowTemplates:
+              properties:
+                enableEditing:
+                  default: true
+                  description: Give the server permissions to edit ClusterWorkflowTemplates.
+                  type: boolean
+                enabled:
+                  default: true
+                  description: Create a ClusterRole and CRB for the server to access
+                    ClusterWorkflowTemplates.
+                  type: boolean
+              type: object
+            deploymentAnnotations:
+              default: {}
+              description: optional map of annotations to be applied to the ui Deployment
+              type: object
+            enabled:
+              default: true
+              description: Deploy the Argo Server
+              type: boolean
+            extraArgs:
+              default: []
+              description: 'Extra arguments to provide to the Argo server binary.
+                Ref: https://argo-workflows.readthedocs.io/en/stable/argo-server/#options'
+              items: {}
+              type: array
+            extraContainers:
+              default: []
+              description: Extra containers to be added to the server deployment
+              items: {}
+              type: array
+            extraEnv:
+              default: []
+              description: Extra environment variables to provide to the argo-server
+                container
+              items: {}
+              type: array
+            extraInitContainers:
+              default: []
+              description: Enables init containers to be added to the server deployment
+              items: {}
+              type: array
+            hostAliases:
+              default: []
+              description: Mapping between IP and hostnames that will be injected
+                as entries in the pod's hosts files
+              items: {}
+              type: array
+            httproute:
+              description: 'Gateway API HTTPRoute configuration NOTE: Gateway API
+                support is in EXPERIMENTAL status Support depends on your Gateway
+                controller implementation Some controllers may require additional
+                configuration (e.g., BackendTLSPolicy for HTTPS backends) Refer to
+                https://gateway-api.sigs.k8s.io/implementations/ for controller-specific
+                details'
+              properties:
+                annotations:
+                  default: {}
+                  description: Additional HTTPRoute annotations
+                  type: object
+                enabled:
+                  default: false
+                  description: Enable HTTPRoute resource for Argo Workflows server
+                    (Gateway API)
+                  type: boolean
+                hostnames:
+                  default: []
+                  description: '- name: example-gateway   namespace: example-gateway-namespace   sectionName:
+                    https -- List of hostnames for the HTTPRoute @default -- `[]`
+                    (See [values.yaml])'
+                  items: {}
+                  type: array
+                labels:
+                  default: {}
+                  description: Additional HTTPRoute labels
+                  type: object
+                parentRefs:
+                  default: []
+                  description: Gateway API parentRefs for the HTTPRoute Must reference
+                    an existing Gateway @default -- `[]` (See [values.yaml])
+                  items: {}
+                  type: array
+                rules:
+                  default: []
+                  description: '- argoworkflows.example.com -- HTTPRoute rules configuration
+                    @default -- `[]` (See [values.yaml])'
+                  items:
+                    properties:
+                      matches:
+                        default: []
+                        items:
+                          properties:
+                            path:
+                              properties:
+                                type:
+                                  default: PathPrefix
+                                  type: string
+                                value:
+                                  default: /
+                                  type: string
+                              type: object
+                          type: object
+                        type: array
+                    type: object
+                  type: array
+              type: object
+            image:
+              properties:
+                registry:
+                  default: quay.io
+                  description: Registry to use for the server
+                  type: string
+                repository:
+                  default: argoproj/argocli
+                  description: Repository to use for the server
+                  type: string
+                tag:
+                  default: ""
+                  description: Image tag for the Argo Workflows server. Defaults to
+                    `.Values.images.tag`.
+                  type: string
+              type: object
+            ingress:
+              description: 'Ingress configuration. ref: https://kubernetes.io/docs/concepts/services-networking/ingress/'
+              properties:
+                annotations:
+                  default: {}
+                  description: Additional ingress annotations
+                  type: object
+                enabled:
+                  default: false
+                  description: Enable an ingress resource
+                  type: boolean
+                extraPaths:
+                  default: []
+                  description: Additional ingress paths
+                  items: {}
+                  type: array
+                hosts:
+                  default: []
+                  description: List of ingress hosts Hostnames must be provided if
+                    Ingress is enabled. Secrets must be manually created in the namespace
+                  items: {}
+                  type: array
+                ingressClassName:
+                  default: ""
+                  description: Defines which ingress controller will implement the
+                    resource
+                  type: string
+                labels:
+                  default: {}
+                  description: Additional ingress labels
+                  type: object
+                pathType:
+                  default: Prefix
+                  description: Ingress path type. One of `Exact`, `Prefix` or `ImplementationSpecific`
+                  type: string
+                paths:
+                  default: []
+                  description: List of ingress paths
+                  items:
+                    default: /
+                    type: string
+                  type: array
+                tls:
+                  default: []
+                  description: Ingress TLS configuration
+                  items: {}
+                  type: array
+              type: object
+            lifecycle:
+              default: {}
+              description: Specify postStart and preStop lifecycle hooks for server
+                container
+              type: object
+            livenessProbe:
+              description: 'livenessProbe for server Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/'
+              properties:
+                enabled:
+                  default: false
+                  description: Enable Kubernetes liveness probe for server
+                  type: boolean
+                failureThreshold:
+                  default: 3
+                  description: Minimum consecutive failures for the [probe] to be
+                    considered failed after having succeeded
+                  type: integer
+                httpGet:
+                  properties:
+                    path:
+                      default: /
+                      description: Http path to use for the liveness probe
+                      type: string
+                    port:
+                      default: 2746
+                      description: Http port to use for the liveness probe
+                      type: integer
+                  type: object
+                initialDelaySeconds:
+                  default: 10
+                  description: Number of seconds after the container has started before
+                    [probe] is initiated
+                  type: integer
+                periodSeconds:
+                  default: 10
+                  description: How often (in seconds) to perform the [probe]
+                  type: integer
+                successThreshold:
+                  default: 1
+                  description: Minimum consecutive successes for the [probe] to be
+                    considered successful after having failed
+                  type: integer
+                timeoutSeconds:
+                  default: 1
+                  description: Number of seconds after which the [probe] times out
+                  type: integer
+              type: object
+            loadBalancerClass:
+              default: ""
+              description: The class of the load balancer implementation
+              type: string
+            loadBalancerIP:
+              default: ""
+              description: Static IP address to assign to loadBalancer service type
+                `LoadBalancer`
+              type: string
+            loadBalancerSourceRanges:
+              default: []
+              description: Source ranges to allow access to service from. Only applies
+                to service type `LoadBalancer`
+              items: {}
+              type: array
+            logging:
+              properties:
+                format:
+                  default: text
+                  description: 'Set the logging format (one of: `text`, `json`)'
+                  type: string
+                globallevel:
+                  default: "0"
+                  description: Set the glog logging level
+                  type: string
+                level:
+                  default: info
+                  description: 'Set the logging level (one of: `debug`, `info`, `warn`,
+                    `error`)'
+                  type: string
+              type: object
+            name:
+              default: server
+              description: Server name string
+              type: string
+            nodeSelector:
+              description: Chart default is linux; CRX targets VMware Supervisor control
+                plane nodes.
+              properties:
+                kubernetes.io/os:
+                  default: CRX
+                  type: string
+              type: object
+            pdb:
+              properties:
+                enabled:
+                  default: false
+                  description: Configure [Pod Disruption Budget] for the server pods
+                  type: boolean
+              type: object
+            podAnnotations:
+              default: {}
+              description: optional map of annotations to be applied to the ui Pods
+              type: object
+            podLabels:
+              default: {}
+              description: Optional labels to add to the UI pods
+              type: object
+            podSecurityContext:
+              default: {}
+              description: SecurityContext to set on the server pods
+              type: object
+            priorityClassName:
+              default: ""
+              description: 'Leverage a PriorityClass to ensure your pods survive resource
+                shortages ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/'
+              type: string
+            rbac:
+              properties:
+                create:
+                  default: true
+                  description: Adds Role and RoleBinding for the server.
+                  type: boolean
+              type: object
+            replicas:
+              default: 1
+              description: The number of server pods to run
+              type: integer
+            resources:
+              default: {}
+              description: Resource limits and requests for the server
+              type: object
+            revisionHistoryLimit:
+              default: 10
+              description: The number of revisions to keep.
+              type: integer
+            secure:
+              default: false
+              description: 'Run the argo server in "secure" mode. Configure this value
+                instead of `--secure` in extraArgs. See the following documentation
+                for more details on secure mode: https://argo-workflows.readthedocs.io/en/stable/tls/'
+              type: boolean
+            securityContext:
+              description: Servers container-level security context
+              properties:
+                allowPrivilegeEscalation:
+                  default: false
+                  type: boolean
+                capabilities:
+                  properties:
+                    drop:
+                      default: []
+                      items:
+                        default: ALL
+                        type: string
+                      type: array
+                  type: object
+                readOnlyRootFilesystem:
+                  default: true
+                  description: Chart default is false; enable for supervisor security
+                    posture.
+                  type: boolean
+                runAsNonRoot:
+                  default: true
+                  type: boolean
+                seccompProfile:
+                  properties:
+                    type:
+                      default: RuntimeDefault
+                      type: string
+                  type: object
+              type: object
+            serviceAccount:
+              properties:
+                annotations:
+                  default: {}
+                  description: Annotations applied to created service account
+                  type: object
+                create:
+                  default: true
+                  description: Create a service account for the server
+                  type: boolean
+                labels:
+                  default: {}
+                  description: Labels applied to created service account
+                  type: object
+                name:
+                  default: ""
+                  description: Service account name
+                  type: string
+              type: object
+            serviceAnnotations:
+              default: {}
+              description: Annotations to be applied to the UI Service
+              type: object
+            serviceLabels:
+              default: {}
+              description: Optional labels to add to the UI Service
+              type: object
+            serviceNodePort:
+              description: Service node port
+              oneOf:
+              - default: null
+                nullable: true
+                type: integer
+              - default: null
+                nullable: true
+                type: number
+              - default: null
+                nullable: true
+                type: boolean
+              - default: null
+                nullable: true
+                type: string
+              - default: null
+                nullable: true
+                type: object
+              - default: null
+                items: {}
+                nullable: true
+                type: array
+            servicePort:
+              default: 2746
+              description: Service port for server
+              type: integer
+            servicePortName:
+              default: ""
+              description: Service port name
+              type: string
+            serviceTargetPort:
+              default: 2746
+              description: Service target port for server
+              type: integer
+            serviceType:
+              default: ClusterIP
+              description: Service type for server pods
+              type: string
+            sso:
+              description: SSO configuration when SSO is specified as a server auth
+                mode.
+              properties:
+                clientId:
+                  properties:
+                    key:
+                      default: client-id
+                      description: Key of secret to retrieve the app OIDC client ID
+                      type: string
+                    name:
+                      default: argo-server-sso
+                      description: Name of secret to retrieve the app OIDC client
+                        ID
+                      type: string
+                  type: object
+                clientSecret:
+                  properties:
+                    key:
+                      default: client-secret
+                      description: Key of a secret to retrieve the app OIDC client
+                        secret
+                      type: string
+                    name:
+                      default: argo-server-sso
+                      description: Name of a secret to retrieve the app OIDC client
+                        secret
+                      type: string
+                  type: object
+                customGroupClaimName:
+                  default: ""
+                  description: Override claim name for OIDC groups
+                  type: string
+                enabled:
+                  default: false
+                  description: Create SSO configuration. If you set `true` , please
+                    also set `.Values.server.authModes` as `sso`.
+                  type: boolean
+                filterGroupsRegex:
+                  default: []
+                  description: Filter the groups returned by the OIDC provider A logical
+                    "OR" is used between each regex in the list
+                  items: {}
+                  type: array
+                insecureSkipVerify:
+                  default: false
+                  description: Skip TLS verification for the HTTP client
+                  type: boolean
+                issuer:
+                  default: https://accounts.google.com
+                  description: The root URL of the OIDC identity provider
+                  type: string
+                issuerAlias:
+                  default: ""
+                  description: Alternate root URLs that can be included for some OIDC
+                    providers
+                  type: string
+                rbac:
+                  properties:
+                    enabled:
+                      default: true
+                      description: Adds ServiceAccount Policy to server (Cluster)Role.
+                      type: boolean
+                    secretWhitelist:
+                      default: []
+                      description: Whitelist to allow server to fetch Secrets When
+                        present, restricts secrets the server can read to a given
+                        list. You can use it to restrict the server to only be able
+                        to access the service account token secrets that are associated
+                        with service accounts used for authorization.
+                      items: {}
+                      type: array
+                  type: object
+                redirectUrl:
+                  default: ""
+                  description: The OIDC redirect URL. Should be in the form <argo-root-url>/oauth2/callback.
+                  type: string
+                scopes:
+                  default: []
+                  description: Scopes requested from the SSO ID provider The 'groups'
+                    scope requests group membership information, which is usually
+                    used for authorization decisions.
+                  items: {}
+                  type: array
+                sessionExpiry:
+                  default: ""
+                  description: '- groups -- Define how long your login is valid for
+                    (in hours) If omitted, defaults to 10h.'
+                  type: string
+                userInfoPath:
+                  default: ""
+                  description: Specify the user info endpoint that contains the groups
+                    claim Configure this if your OIDC provider provides groups information
+                    only using the user-info endpoint (e.g. Okta)
+                  type: string
+              type: object
+            terminationGracePeriodSeconds:
+              default: 30
+              description: terminationGracePeriodSeconds for container lifecycle hook
+              type: integer
+            tmpVolume:
+              description: Volume to be mounted in Pods for temporary files.
+              properties:
+                emptyDir:
+                  default: {}
+                  type: object
+              type: object
+            tolerations:
+              default: []
+              description: '[Tolerations] for use with node taints'
+              items: {}
+              type: array
+            topologySpreadConstraints:
+              default: []
+              description: 'Assign custom [TopologySpreadConstraints] rules to the
+                argo server Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
+                If labelSelector is left out, it will default to the labelSelector
+                configuration of the deployment'
+              items: {}
+              type: array
+            volumeMounts:
+              default: []
+              description: Additional volume mounts to the server main container.
+              items: {}
+              type: array
+            volumes:
+              default: []
+              description: Additional volumes to the server pod.
+              items: {}
+              type: array
+          type: object
+        singleNamespace:
+          default: false
+          description: Restrict Argo to operate only in a single namespace (the namespace
+            of the Helm release) by apply Roles and RoleBindings instead of the Cluster
+            equivalents, and start workflow-controller with the --namespaced flag.
+            Use it in clusters with strict access policy.
+          type: boolean
+        useStaticCredentials:
+          default: true
+          description: Use static credentials for S3 (eg. when not using AWS IRSA)
+          type: boolean
+        workflow:
+          properties:
+            namespace:
+              description: Deprecated; use controller.workflowNamespaces instead.
+              oneOf:
+              - default: null
+                nullable: true
+                type: integer
+              - default: null
+                nullable: true
+                type: number
+              - default: null
+                nullable: true
+                type: boolean
+              - default: null
+                nullable: true
+                type: string
+              - default: null
+                nullable: true
+                type: object
+              - default: null
+                items: {}
+                nullable: true
+                type: array
+            rbac:
+              properties:
+                agentPermissions:
+                  default: false
+                  description: Allows permissions for the Argo Agent. Only required
+                    if using http/plugin templates
+                  type: boolean
+                artifactGC:
+                  default: false
+                  description: Allows permissions for the Argo Artifact GC pod. Only
+                    required if using artifact gc
+                  type: boolean
+                create:
+                  default: true
+                  description: Adds Role and RoleBinding for the above specified service
+                    account to be able to run workflows. A Role and Rolebinding pair
+                    is also created for each namespace in controller.workflowNamespaces
+                    (see below)
+                  type: boolean
+                rules:
+                  default: []
+                  description: '- name: my-service-account   namespace: my-namespace
+                    -- Additional rules for the service account that runs the workflows.'
+                  items: {}
+                  type: array
+                serviceAccounts:
+                  default: []
+                  description: Extra service accounts to be added to the RoleBinding
+                  items: {}
+                  type: array
+              type: object
+            serviceAccount:
+              properties:
+                annotations:
+                  default: {}
+                  description: Annotations applied to created service account
+                  type: object
+                create:
+                  default: false
+                  description: Specifies whether a service account should be created
+                  type: boolean
+                createSecret:
+                  default: false
+                  description: Specifies whether a secret for each service account
+                    should be created
+                  type: boolean
+                labels:
+                  default: {}
+                  description: Labels applied to created service account
+                  type: object
+                name:
+                  default: argo-workflow
+                  description: Service account which is used to run workflows
+                  type: string
+                pullSecrets:
+                  default: []
+                  description: Secrets with credentials to pull images from a private
+                    registry. Same format as `.Values.images.pullSecrets`
+                  items: {}
+                  type: array
+              type: object
+          type: object
+      type: object
+  version: 1.0.13
