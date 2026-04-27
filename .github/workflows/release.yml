@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - VERSION
       - service/vendir.yml
   workflow_dispatch:
 
@@ -40,7 +41,9 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "version=$(make -s version)" >> $GITHUB_OUTPUT
+        run: |
+          echo "version=$(make -s version)" >> $GITHUB_OUTPUT
+          echo "chart_version=$(yq '.directories[0].contents[0].helmChart.version' service/vendir.yml)" >> $GITHUB_OUTPUT
 
       - name: Commit artifacts
         run: |
@@ -61,5 +64,7 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
+          body: |
+            **Upstream chart:** argo-workflows `${{ steps.version.outputs.chart_version }}`
           files: argo-workflows-service.yml
           generate_release_notes: true

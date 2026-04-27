@@ -1,4 +1,4 @@
-VERSION ?= $(shell yq '.directories[0].contents[0].helmChart.version' service/vendir.yml)
+VERSION ?= $(shell cat VERSION)
 
 .PHONY: sync release version
 

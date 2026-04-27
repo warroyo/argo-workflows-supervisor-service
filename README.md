@@ -59,7 +59,7 @@ imgpkgBundle:
 make release
 ```
 
-Reads the version from `service/vendir.yml`, runs `kctrl package release`, and writes `argo-workflows-service.yml`.
+Reads the version from `VERSION`, runs `kctrl package release`, and writes `argo-workflows-service.yml`.
 
 ## Installation
 
@@ -86,9 +86,17 @@ Pass any [upstream chart value](https://github.com/argoproj/argo-helm/tree/main/
 | `server.securityContext.readOnlyRootFilesystem` | `false` | `true` | Supervisor security posture |
 | `server.securityContext.seccompProfile` | _(unset)_ | `RuntimeDefault` | Supervisor security posture |
 
-## Updating the Chart Version
+## Releasing
 
+The package version in `VERSION` is independent of the upstream chart version, so supervisor fixes can be released without a chart update.
+
+**Supervisor fix only** (no chart change):
+1. Bump `VERSION` (e.g. `1.0.0` → `1.0.1`)
+2. Push to `main`
+
+**Chart version update**:
 1. Update `version` in `service/vendir.yml`
-2. Push to `main` — GitHub Actions runs `make sync` and `make release` automatically
+2. Bump `VERSION` as appropriate (e.g. `1.0.1` → `1.1.0`)
+3. Push to `main`
 
-To run locally instead: `make sync && make release`
+In both cases GitHub Actions runs `make sync && make release` automatically. To release locally: `make sync && make release`
