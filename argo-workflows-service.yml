@@ -15,14 +15,14 @@ metadata:
   name: argo-workflows.field.vmware.com.1.0.0
 spec:
   refName: argo-workflows.field.vmware.com
-  releasedAt: "2026-04-27T20:16:04Z"
+  releasedAt: "2026-04-27T21:22:23Z"
   template:
     spec:
       deploy:
       - kapp: {}
       fetch:
       - imgpkgBundle:
-          image: ghcr.io/warroyo/argo-workflows-supervisor-service@sha256:6ea1c607f92d12547b14303370308244e080be610189246735fc071543f378a6
+          image: ghcr.io/warroyo/argo-workflows-supervisor-service@sha256:10176e4dc3dab9a307840f3d7191d47ffa9dcda235dffd73d868ccf7e764a89d
       template:
       - helmTemplate:
           name: argo-workflows
