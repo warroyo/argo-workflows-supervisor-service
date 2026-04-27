@@ -1,6 +1,12 @@
 # vendir internal sync state
 .vendir/
 
+# vendir-managed upstream chart — only supervisor template overrides are committed
+service/upstream/*
+!service/upstream/templates/
+service/upstream/templates/*
+!service/upstream/templates/supervisor/
+
 # macOS
 .DS_Store
 

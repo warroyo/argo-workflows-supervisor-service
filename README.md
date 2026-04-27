@@ -26,11 +26,10 @@ Two supervisor-specific additions sit on top of the upstream chart:
     ├── vendir.lock.yml               # locked chart version
     ├── package-build.yml             # kctrl build config
     ├── package-resources.yml         # Package / PackageMetadata / PackageInstall stubs
+    ├── supervisor-values.yaml        # supervisor overrides (source of truth — edit this)
     ├── carvel-artifacts/             # generated package artifacts (committed after release)
-    └── upstream/                     # Helm chart (populated by vendir sync)
-        ├── Chart.yaml
-        ├── values.yaml               # supervisor-specific defaults and overrides
-        └── templates/supervisor/
+    └── upstream/                     # populated by vendir sync — not committed except overrides
+        └── templates/supervisor/     # committed; vendir-managed chart content is gitignored
             ├── _helpers.tpl          # overrides argo-workflows.namespace to use .Values.namespace
             └── ns-overlay.yml        # ytt overlay safety net
 ```
@@ -43,7 +42,7 @@ Two supervisor-specific additions sit on top of the upstream chart:
 make sync
 ```
 
-Downloads the `argo-workflows` Helm chart into `service/upstream/` and restores the supervisor templates that vendir overwrites. If vendir replaced `values.yaml`, check it against git and re-apply any supervisor overrides.
+Downloads the `argo-workflows` Helm chart into `service/upstream/`, deep-merges `service/supervisor-values.yaml` into the chart's full `values.yaml` (supervisor values win), then restores the supervisor templates. To change a default value, edit `service/supervisor-values.yaml` — not `values.yaml` directly.
 
 ### 2. Update the package bundle image (first time only)
 
@@ -74,16 +73,18 @@ Then enable the service through the vSphere UI or via a `SupervisorService` reso
 
 ## Configuration
 
-Pass any [upstream chart value](https://github.com/argoproj/argo-helm/tree/main/charts/argo-workflows) through the PackageInstall values secret. Supervisor-specific defaults in `service/upstream/values.yaml`:
+Pass any [upstream chart value](https://github.com/argoproj/argo-helm/tree/main/charts/argo-workflows) through the PackageInstall values secret. The supervisor-specific overrides in `service/supervisor-values.yaml` — only values that differ from the chart's own defaults:
 
-| Value | Default | Notes |
-|---|---|---|
-| `namespace` | `""` | Auto-injected by the Supervisor framework |
-| `createAggregateRoles` | `true` | Aggregates Argo RBAC into standard k8s view/edit/admin roles |
-| `controller.nodeSelector` | `kubernetes.io/os: CRX` | Targets Supervisor nodes |
-| `server.nodeSelector` | `kubernetes.io/os: CRX` | Targets Supervisor nodes |
-| `crds.install` | `true` | Installs CRDs via pre-install hook |
-| `server.authModes` | `[server]` | No-auth mode; adjust for SSO |
+| Value | Chart default | Supervisor override | Reason |
+|---|---|---|---|
+| `namespace` | _(not in chart)_ | `""` | Auto-injected by the Supervisor framework |
+| `images.pullPolicy` | `Always` | `IfNotPresent` | Avoids unnecessary pulls in supervisor environments |
+| `controller.nodeSelector` | `kubernetes.io/os: linux` | `kubernetes.io/os: CRX` | Targets Supervisor control plane nodes |
+| `controller.securityContext.seccompProfile` | _(unset)_ | `RuntimeDefault` | Supervisor security posture |
+| `server.nodeSelector` | `kubernetes.io/os: linux` | `kubernetes.io/os: CRX` | Targets Supervisor control plane nodes |
+| `server.authModes` | `[]` | `[server]` | Chart requires explicit auth mode; adjust for SSO |
+| `server.securityContext.readOnlyRootFilesystem` | `false` | `true` | Supervisor security posture |
+| `server.securityContext.seccompProfile` | _(unset)_ | `RuntimeDefault` | Supervisor security posture |
 
 ## Updating the Chart Version
 

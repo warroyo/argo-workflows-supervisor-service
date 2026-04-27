@@ -1,0 +1,31 @@
+# Supervisor-specific value overrides. Source of truth for supervisor customizations.
+# During `make sync` this is deep-merged (these values win) into the full upstream
+# chart values.yaml. Edit this file, not upstream/values.yaml.
+
+# Custom value injected by the VMware Supervisor framework at install time.
+namespace: ""
+
+images:
+  # Chart default is Always; IfNotPresent avoids unnecessary pulls in supervisor environments.
+  pullPolicy: IfNotPresent
+
+controller:
+  # Chart default is linux; CRX targets VMware Supervisor control plane nodes.
+  nodeSelector:
+    kubernetes.io/os: CRX
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+server:
+  # Chart default is linux; CRX targets VMware Supervisor control plane nodes.
+  nodeSelector:
+    kubernetes.io/os: CRX
+  # Chart default is []; server auth mode must be set explicitly.
+  authModes:
+  - server
+  securityContext:
+    # Chart default is false; enable for supervisor security posture.
+    readOnlyRootFilesystem: true
+    seccompProfile:
+      type: RuntimeDefault

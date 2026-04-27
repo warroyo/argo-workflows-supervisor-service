@@ -46,7 +46,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add service/upstream/ service/vendir.lock.yml service/carvel-artifacts/ argo-workflows-service.yml
+          git add service/vendir.lock.yml service/carvel-artifacts/ argo-workflows-service.yml
           git diff --staged --quiet && echo "no changes to commit" && exit 0
           git commit -m "chore: release v${{ steps.version.outputs.version }} [skip ci]"
           git push
