@@ -7,14 +7,15 @@ spec:
   displayName: argo-workflows
   longDescription: installs Argo Workflows as a supervisor service
   shortDescription: Argo Workflows
+---
 apiVersion: data.packaging.carvel.dev/v1alpha1
 kind: Package
 metadata:
   creationTimestamp: null
-  name: argo-workflows.field.vmware.com.1.0.13
+  name: argo-workflows.field.vmware.com.1.0.0
 spec:
   refName: argo-workflows.field.vmware.com
-  releasedAt: "2026-04-27T19:20:39Z"
+  releasedAt: "2026-04-27T20:16:04Z"
   template:
     spec:
       deploy:
@@ -1850,4 +1851,4 @@ spec:
               type: object
           type: object
       type: object
-  version: 1.0.13
+  version: 1.0.0
