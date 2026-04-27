@@ -16,4 +16,5 @@ sync:
 release:
 	cd service && kctrl package release -y -v $(VERSION)
 	cp service/carvel-artifacts/packages/argo-workflows.field.vmware.com/metadata.yml argo-workflows-service.yml
+	echo "---" >> argo-workflows-service.yml
 	cat service/carvel-artifacts/packages/argo-workflows.field.vmware.com/package.yml >> argo-workflows-service.yml
