@@ -1,9 +1,4 @@
-#@ load("@ytt:overlay", "overlay")
-
-#! Safety net for any resources that use .Release.Namespace directly rather than
-#! the argo-workflows.namespace helper (which already reads .Values.namespace via
-#! the _helpers.tpl override in this directory).
-#@overlay/match by=overlay.subset({"metadata": {"namespace": "argo"}}), expects="0+"
----
-metadata:
-  namespace: {{ .Values.namespace }}
+#! This file is intentionally empty.
+#! The argo-workflows.namespace helper in _helpers.tpl already injects .Values.namespace
+#! for all namespaced resources in the chart. A broader ytt overlay is not needed and
+#! causes duplicate Roles when chart RBAC iterates over workflowNamespaces.

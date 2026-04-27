@@ -31,7 +31,7 @@ Two supervisor-specific additions sit on top of the upstream chart:
     └── upstream/                     # populated by vendir sync — not committed except overrides
         └── templates/supervisor/     # committed; vendir-managed chart content is gitignored
             ├── _helpers.tpl          # overrides argo-workflows.namespace to use .Values.namespace
-            └── ns-overlay.yml        # ytt overlay safety net
+            └── ns-overlay.yml        # intentionally empty (helper handles all namespace injection)
 ```
 
 ## Development Workflow
