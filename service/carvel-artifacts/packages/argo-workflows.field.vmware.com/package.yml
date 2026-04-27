@@ -5,18 +5,17 @@ metadata:
   name: argo-workflows.field.vmware.com.1.0.0
 spec:
   refName: argo-workflows.field.vmware.com
-  releasedAt: "2026-04-27T21:22:23Z"
+  releasedAt: "2026-04-27T23:17:44Z"
   template:
     spec:
       deploy:
       - kapp: {}
       fetch:
       - imgpkgBundle:
-          image: ghcr.io/warroyo/argo-workflows-supervisor-service@sha256:10176e4dc3dab9a307840f3d7191d47ffa9dcda235dffd73d868ccf7e764a89d
+          image: ghcr.io/warroyo/argo-workflows-supervisor-service@sha256:abbe586358a729c2dad38e623285f77a5963440059b33e9ef93b05ef4210a39c
       template:
       - helmTemplate:
           name: argo-workflows
-          namespace: argo
           path: upstream
       - ytt:
           ignoreUnknownComments: true
@@ -765,13 +764,11 @@ spec:
               type: object
             workflowNamespaces:
               default: []
-              description: Specify all namespaces where this workflow controller instance
-                will manage workflows. This controls where the service account and
-                RBAC resources will be created. Only valid when singleNamespace is
-                false.
-              items:
-                default: default
-                type: string
+              description: Chart default is ["default"]. The chart appends the argo-workflows
+                namespace to this list, so leaving "default" in produces a Role in
+                the default namespace which the supervisor service account cannot
+                create. Empty scopes RBAC to the supervisor namespace only.
+              items: {}
               type: array
             workflowRestrictions:
               default: {}
