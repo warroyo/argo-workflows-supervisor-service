@@ -7,11 +7,11 @@ version:
 
 sync:
 	cd service && vendir sync
-	yq eval-all 'select(fileIndex == 0) *+ select(fileIndex == 1)' \
-		service/upstream/values.yaml service/supervisor-values.yaml \
+	yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' \
+		service/upstream/values.yaml service/supervisor-overrides/supervisor-values.yaml \
 		> /tmp/argo-merged-values.yaml
 	mv /tmp/argo-merged-values.yaml service/upstream/values.yaml
-	git checkout -- service/upstream/templates/supervisor/
+
 
 release:
 	cd service && kctrl package release -y -v $(VERSION)

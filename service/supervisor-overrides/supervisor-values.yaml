@@ -16,6 +16,10 @@ controller:
   securityContext:
     seccompProfile:
       type: RuntimeDefault
+  # Chart default is ["default"]. The chart appends the argo-workflows namespace to this
+  # list, so leaving "default" in produces a Role in the default namespace which the
+  # supervisor service account cannot create. Empty scopes RBAC to the supervisor namespace only.
+  workflowNamespaces: []
 
 server:
   # Chart default is linux; CRX targets VMware Supervisor control plane nodes.
