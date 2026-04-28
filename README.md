@@ -1,6 +1,6 @@
 # Argo Workflows Supervisor Service
 
-Packages the upstream [argo-workflows Helm chart](https://github.com/argoproj/argo-helm) as a Carvel `Package` for installation as a VMware Supervisor Service.
+Packages the upstream [argo-workflows Helm chart](https://github.com/argoproj/argo-helm) as a Carvel Package for installation as a VMware Supervisor Service.
 
 
 ## Repository Layout
