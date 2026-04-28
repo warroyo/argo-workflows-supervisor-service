@@ -4,8 +4,10 @@ Packages the upstream [argo-workflows Helm chart](https://github.com/argoproj/ar
 
 Two supervisor-specific additions sit on top of the upstream chart:
 
-- `templates/supervisor/_helpers.tpl` — overrides `argo-workflows.namespace` to read `.Values.namespace`, which the Supervisor framework injects automatically at install time
-- `templates/supervisor/ns-overlay.yml` — ytt safety net for any chart resources that reference `.Release.Namespace` directly
+- `service/supervisor-overrides/_00_overrides.tpl` — overrides `argo-workflows.namespace` to read `.Values.namespace`, which the Supervisor framework injects automatically at install time. Copied to `upstream/templates/` during `make sync` so it is processed before `_helpers.tpl` alphabetically and wins.
+- `service/supervisor-overrides/supervisor-values.yaml` — supervisor value overrides deep-merged into the upstream chart's `values.yaml` during `make sync`
+
+Workflow RBAC (`workflow.rbac.create: false`, `workflow.serviceAccount.create: false`) is disabled because workflows do not run in the supervisor namespace; namespaces created on demand handle their own RBAC.
 
 ## Prerequisites
 
@@ -26,12 +28,11 @@ Two supervisor-specific additions sit on top of the upstream chart:
     ├── vendir.lock.yml               # locked chart version
     ├── package-build.yml             # kctrl build config
     ├── package-resources.yml         # Package / PackageMetadata / PackageInstall stubs
-    ├── supervisor-values.yaml        # supervisor overrides (source of truth — edit this)
+    ├── supervisor-overrides/         # committed; supervisor customizations live here
+    │   ├── supervisor-values.yaml    # supervisor value overrides (source of truth — edit this)
+    │   └── _00_overrides.tpl        # Helm helper override; copied to upstream/templates/ by make sync
     ├── carvel-artifacts/             # generated package artifacts (committed after release)
-    └── upstream/                     # populated by vendir sync — not committed except overrides
-        └── templates/supervisor/     # committed; vendir-managed chart content is gitignored
-            ├── _helpers.tpl          # overrides argo-workflows.namespace to use .Values.namespace
-            └── ns-overlay.yml        # intentionally empty (helper handles all namespace injection)
+    └── upstream/                     # populated by vendir sync — not committed
 ```
 
 ## Development Workflow
@@ -42,7 +43,7 @@ Two supervisor-specific additions sit on top of the upstream chart:
 make sync
 ```
 
-Downloads the `argo-workflows` Helm chart into `service/upstream/`, deep-merges `service/supervisor-values.yaml` into the chart's full `values.yaml` (supervisor values win), then restores the supervisor templates. To change a default value, edit `service/supervisor-values.yaml` — not `values.yaml` directly.
+Downloads the `argo-workflows` Helm chart into `service/upstream/`, deep-merges `service/supervisor-overrides/supervisor-values.yaml` into the chart's full `values.yaml` (supervisor values win), then copies `_00_overrides.tpl` into `service/upstream/templates/` so Helm processes it before `_helpers.tpl`. To change a default value, edit `service/supervisor-overrides/supervisor-values.yaml` — not `upstream/values.yaml` directly.
 
 ### 2. Update the package bundle image (first time only)
 
@@ -73,7 +74,7 @@ Then enable the service through the vSphere UI or via a `SupervisorService` reso
 
 ## Configuration
 
-Pass any [upstream chart value](https://github.com/argoproj/argo-helm/tree/main/charts/argo-workflows) through the PackageInstall values secret. The supervisor-specific overrides in `service/supervisor-values.yaml` — only values that differ from the chart's own defaults:
+Pass any [upstream chart value](https://github.com/argoproj/argo-helm/tree/main/charts/argo-workflows) through the PackageInstall values secret. The supervisor-specific overrides in `service/supervisor-overrides/supervisor-values.yaml` — only values that differ from the chart's own defaults:
 
 | Value | Chart default | Supervisor override | Reason |
 |---|---|---|---|
@@ -85,6 +86,8 @@ Pass any [upstream chart value](https://github.com/argoproj/argo-helm/tree/main/
 | `server.authModes` | `[]` | `[server]` | Chart requires explicit auth mode; adjust for SSO |
 | `server.securityContext.readOnlyRootFilesystem` | `false` | `true` | Supervisor security posture |
 | `server.securityContext.seccompProfile` | _(unset)_ | `RuntimeDefault` | Supervisor security posture |
+| `workflow.rbac.create` | `true` | `false` | Workflows don't run in the supervisor namespace; on-demand namespaces handle their own RBAC |
+| `workflow.serviceAccount.create` | `true` | `false` | Same reason as above |
 
 ## Releasing
 

@@ -11,6 +11,7 @@ sync:
 		service/upstream/values.yaml service/supervisor-overrides/supervisor-values.yaml \
 		> /tmp/argo-merged-values.yaml
 	mv /tmp/argo-merged-values.yaml service/upstream/values.yaml
+	cp service/supervisor-overrides/_00_overrides.tpl service/upstream/templates/_00_overrides.tpl
 
 
 release:
