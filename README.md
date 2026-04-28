@@ -90,6 +90,7 @@ Pass any [upstream chart value](https://github.com/argoproj/argo-helm/tree/main/
 | `server.securityContext.seccompProfile` | _(unset)_ | `RuntimeDefault` | Supervisor security posture |
 | `workflow.rbac.create` | `true` | `false` | Workflows don't run in the supervisor namespace; on-demand namespaces handle their own RBAC |
 | `workflow.serviceAccount.create` | `true` | `false` | Same reason as above |
+| `controller.workflowClusterTemplates.enabled` | `true` | `false` | namespace permissions are all that are needed for supervisor security |
 
 ## Releasing
 

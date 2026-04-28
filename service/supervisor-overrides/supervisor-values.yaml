@@ -16,6 +16,8 @@ controller:
   securityContext:
     seccompProfile:
       type: RuntimeDefault
+  clusterWorkflowTemplates:
+    enabled: false
 
 server:
   # Chart default is linux; CRX targets VMware Supervisor control plane nodes.
