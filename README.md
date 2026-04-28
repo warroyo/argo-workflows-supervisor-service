@@ -64,15 +64,27 @@ make release
 
 Reads the version from `VERSION`, runs `kctrl package release`, and writes `argo-workflows-service.yml`.
 
-## Installation
+## Install
 
-Apply `argo-workflows-service.yml` to the Supervisor cluster:
+### UI
 
-```bash
-kubectl apply -f argo-workflows-service.yml
-```
+1. Login to vCenter and go to Workload Management → Services
+2. Add a new service and upload `argo-workflows-service.yml`, available from the releases
+3. Add any additional values if needed — see the Configuration section below
+4. Install
 
-Then enable the service through the vSphere UI or via a `SupervisorService` resource pointing at the package. The Supervisor sets `namespace` automatically when it installs the service.
+## AirGap Install
+
+1. Relocate the image bundle to your registry:
+
+   ```bash
+   imgpkg copy -b <bundle reference from argo-workflows-service.yml> \
+     --to-repo your-registry.com/argo-workflows-supervisor-service
+   ```
+
+2. Replace the image bundle reference in `argo-workflows-service.yml` with the new path. The SHA digest stays the same — only replace `ghcr.io/warroyo/argo-workflows-supervisor-service` with your registry and path.
+
+3. Follow the UI install steps above.
 
 ## Configuration
 
