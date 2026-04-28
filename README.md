@@ -24,10 +24,10 @@ Packages the upstream [argo-workflows Helm chart](https://github.com/argoproj/ar
 ## Customizations for Supervisor
 Two supervisor-specific additions sit on top of the upstream chart:
 
-- `service/supervisor-overrides/_00_overrides.tpl` — overrides `argo-workflows.namespace` to read `.Values.namespace`, which the Supervisor framework injects automatically at install time. Copied to `upstream/templates/` during `make sync` so it is processed before `_helpers.tpl` alphabetically and wins. This is needed so that we properly set the namespace across all resources. 
+- `service/supervisor-overrides/_00_overrides.tpl` — overrides `argo-workflows.namespace` to read `.Values.namespace`, which the Supervisor framework injects at install time. Copied to `upstream/templates/` during `make sync` so Helm processes it before `_helpers.tpl` alphabetically.
 - `service/supervisor-overrides/supervisor-values.yaml` — supervisor value overrides deep-merged into the upstream chart's `values.yaml` during `make sync`
 
-Workflow RBAC (`workflow.rbac.create: false`, `workflow.serviceAccount.create: false`) is disabled because workflows do not run in the supervisor namespace. Namespaces that want to run arokflows need handle their own RBAC.
+Workflow RBAC (`workflow.rbac.create: false`, `workflow.serviceAccount.create: false`) is disabled because workflows do not run in the supervisor namespace. Namespaces that want to run workflows need to handle their own RBAC.
 
 ## Development Workflow
 
@@ -76,7 +76,7 @@ Then enable the service through the vSphere UI or via a `SupervisorService` reso
 
 ## Configuration
 
-Pass any [upstream chart value](https://github.com/argoproj/argo-helm/tree/main/charts/argo-workflows) through the PackageInstall values secret. The supervisor-specific overrides in `service/supervisor-overrides/supervisor-values.yaml` — only values that differ from the chart's own defaults:
+Pass any [upstream chart value](https://github.com/argoproj/argo-helm/tree/main/charts/argo-workflows) through the PackageInstall values secret. The overrides in `service/supervisor-overrides/supervisor-values.yaml` cover only values that differ from the chart's defaults:
 
 | Value | Chart default | Supervisor override | Reason |
 |---|---|---|---|
@@ -91,6 +91,40 @@ Pass any [upstream chart value](https://github.com/argoproj/argo-helm/tree/main/
 | `workflow.rbac.create` | `true` | `false` | Workflows don't run in the supervisor namespace; on-demand namespaces handle their own RBAC |
 | `workflow.serviceAccount.create` | `true` | `false` | Same reason as above |
 | `controller.workflowClusterTemplates.enabled` | `true` | `false` | namespace permissions are all that are needed for supervisor security |
+
+## Running Workflows in a Namespace
+
+Because `workflow.rbac.create` is disabled at the supervisor level, each namespace that runs workflows must create its own service account and RBAC. The controller already has a `ClusterRole`/`ClusterRoleBinding` that lets it manage pods and workflows in any namespace — the only per-namespace piece is the executor service account.
+
+A minimal example is in [examples/namespace-workflow/](examples/namespace-workflow/). The example assumes the namespace already exists.
+
+| File | Purpose |
+|---|---|
+| `rbac.yaml` | `ServiceAccount`, `Role`, and `RoleBinding` for the workflow executor |
+| `workflow.yaml` | A simple hello-world `Workflow` that prints a message |
+
+### Apply and verify
+
+```bash
+# Set to your supervisor namespace
+NS=<your-supervisor-namespace>
+
+# Apply RBAC and submit the workflow
+kubectl -n $NS apply -f examples/namespace-workflow/rbac.yaml
+kubectl -n $NS apply -f examples/namespace-workflow/workflow.yaml
+
+# Watch it complete
+kubectl -n $NS get workflow hello-world -w
+
+# Check the output
+kubectl -n $NS logs -l workflows.argoproj.io/workflow=hello-world --all-containers
+```
+
+Expected log output: `hello from argo workflows`
+
+### Adapting for your namespace
+
+Submit your own `Workflow` or `CronWorkflow` resources to the namespace, referencing `serviceAccountName: argo-workflow`.
 
 ## Releasing
 
