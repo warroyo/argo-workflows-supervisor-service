@@ -2,17 +2,17 @@ apiVersion: data.packaging.carvel.dev/v1alpha1
 kind: Package
 metadata:
   creationTimestamp: null
-  name: argo-workflows.field.vmware.com.1.0.0
+  name: argo-workflows.field.vmware.com.1.0.1
 spec:
   refName: argo-workflows.field.vmware.com
-  releasedAt: "2026-04-28T14:28:59Z"
+  releasedAt: "2026-04-28T15:02:56Z"
   template:
     spec:
       deploy:
       - kapp: {}
       fetch:
       - imgpkgBundle:
-          image: ghcr.io/warroyo/argo-workflows-supervisor-service@sha256:aaf581c75a5617b446ece8446102ad13e4e69dcbb7d0649d3fe61bba637ed594
+          image: ghcr.io/warroyo/argo-workflows-supervisor-service@sha256:5c9a8874d220f73958181bfb8434fa6849f6fcb6d9107f29da565c618949129c
       template:
       - helmTemplate:
           name: argo-workflows
@@ -101,7 +101,7 @@ spec:
             clusterWorkflowTemplates:
               properties:
                 enabled:
-                  default: true
+                  default: false
                   description: Create a ClusterRole and CRB for the controller to
                     access ClusterWorkflowTemplates.
                   type: boolean
@@ -1843,4 +1843,4 @@ spec:
               type: object
           type: object
       type: object
-  version: 1.0.0
+  version: 1.0.1
