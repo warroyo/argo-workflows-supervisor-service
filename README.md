@@ -29,40 +29,6 @@ Two supervisor-specific additions sit on top of the upstream chart:
 
 Workflow RBAC (`workflow.rbac.create: false`, `workflow.serviceAccount.create: false`) is disabled because workflows do not run in the supervisor namespace. Namespaces that want to run workflows need to handle their own RBAC.
 
-## Development Workflow
-
-### Prerequisites
-
-- [`vendir`](https://carvel.dev/vendir/) — syncs the upstream Helm chart
-- [`kctrl`](https://carvel.dev/kapp-controller/docs/latest/kctrl-cli-reference/) — builds and releases Carvel packages
-- [`imgpkg`](https://carvel.dev/imgpkg/) — bundles the package as an OCI image
-- [`kbld`](https://carvel.dev/kbld/) — resolves image references
-- A container registry (default: `ghcr.io/warroyo/argo-workflows-supervisor-service`)
-
-### 1. Sync the upstream chart
-
-```bash
-make sync
-```
-
-Downloads the `argo-workflows` Helm chart into `service/upstream/`, deep-merges `service/supervisor-overrides/supervisor-values.yaml` into the chart's full `values.yaml` (supervisor values win), then copies `_00_overrides.tpl` into `service/upstream/templates/` so Helm processes it before `_helpers.tpl`. To change a default value, edit `service/supervisor-overrides/supervisor-values.yaml` — not `upstream/values.yaml` directly.
-
-### 2. Update the package bundle image (first time only)
-
-Edit `service/package-build.yml` and set your registry:
-
-```yaml
-imgpkgBundle:
-  image: ghcr.io/YOUR_ORG/argo-workflows-supervisor-service
-```
-
-### 3. Release
-
-```bash
-make release
-```
-
-Reads the version from `VERSION`, runs `kctrl package release`, and writes `argo-workflows-service.yml`.
 
 ## Install
 
@@ -137,6 +103,42 @@ Expected log output: `hello from argo workflows`
 ### Adapting for your namespace
 
 Submit your own `Workflow` or `CronWorkflow` resources to the namespace, referencing `serviceAccountName: argo-workflow`.
+
+## Development Workflow
+
+### Prerequisites
+
+- [`vendir`](https://carvel.dev/vendir/) — syncs the upstream Helm chart
+- [`kctrl`](https://carvel.dev/kapp-controller/docs/latest/kctrl-cli-reference/) — builds and releases Carvel packages
+- [`imgpkg`](https://carvel.dev/imgpkg/) — bundles the package as an OCI image
+- [`kbld`](https://carvel.dev/kbld/) — resolves image references
+- A container registry (default: `ghcr.io/warroyo/argo-workflows-supervisor-service`)
+
+### 1. Sync the upstream chart
+
+```bash
+make sync
+```
+
+Downloads the `argo-workflows` Helm chart into `service/upstream/`, deep-merges `service/supervisor-overrides/supervisor-values.yaml` into the chart's full `values.yaml` (supervisor values win), then copies `_00_overrides.tpl` into `service/upstream/templates/` so Helm processes it before `_helpers.tpl`. To change a default value, edit `service/supervisor-overrides/supervisor-values.yaml` — not `upstream/values.yaml` directly.
+
+### 2. Update the package bundle image (first time only)
+
+Edit `service/package-build.yml` and set your registry:
+
+```yaml
+imgpkgBundle:
+  image: ghcr.io/YOUR_ORG/argo-workflows-supervisor-service
+```
+
+### 3. Release
+
+```bash
+make release
+```
+
+Reads the version from `VERSION`, runs `kctrl package release`, and writes `argo-workflows-service.yml`.
+
 
 ## Releasing
 
