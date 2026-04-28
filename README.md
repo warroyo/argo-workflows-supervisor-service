@@ -1,21 +1,7 @@
 # Argo Workflows Supervisor Service
 
-Packages the upstream [argo-workflows Helm chart](https://github.com/argoproj/argo-helm) as a Carvel `Package` for installation as a VMware Supervisor Service on vSphere with Tanzu.
+Packages the upstream [argo-workflows Helm chart](https://github.com/argoproj/argo-helm) as a Carvel `Package` for installation as a VMware Supervisor Service.
 
-Two supervisor-specific additions sit on top of the upstream chart:
-
-- `service/supervisor-overrides/_00_overrides.tpl` — overrides `argo-workflows.namespace` to read `.Values.namespace`, which the Supervisor framework injects automatically at install time. Copied to `upstream/templates/` during `make sync` so it is processed before `_helpers.tpl` alphabetically and wins.
-- `service/supervisor-overrides/supervisor-values.yaml` — supervisor value overrides deep-merged into the upstream chart's `values.yaml` during `make sync`
-
-Workflow RBAC (`workflow.rbac.create: false`, `workflow.serviceAccount.create: false`) is disabled because workflows do not run in the supervisor namespace; namespaces created on demand handle their own RBAC.
-
-## Prerequisites
-
-- [`vendir`](https://carvel.dev/vendir/) — syncs the upstream Helm chart
-- [`kctrl`](https://carvel.dev/kapp-controller/docs/latest/kctrl-cli-reference/) — builds and releases Carvel packages
-- [`imgpkg`](https://carvel.dev/imgpkg/) — bundles the package as an OCI image
-- [`kbld`](https://carvel.dev/kbld/) — resolves image references
-- A container registry (default: `ghcr.io/warroyo/argo-workflows-supervisor-service`)
 
 ## Repository Layout
 
@@ -35,7 +21,23 @@ Workflow RBAC (`workflow.rbac.create: false`, `workflow.serviceAccount.create: f
     └── upstream/                     # populated by vendir sync — not committed
 ```
 
+## Customizations for Supervisor
+Two supervisor-specific additions sit on top of the upstream chart:
+
+- `service/supervisor-overrides/_00_overrides.tpl` — overrides `argo-workflows.namespace` to read `.Values.namespace`, which the Supervisor framework injects automatically at install time. Copied to `upstream/templates/` during `make sync` so it is processed before `_helpers.tpl` alphabetically and wins. This is needed so that we properly set the namespace across all resources. 
+- `service/supervisor-overrides/supervisor-values.yaml` — supervisor value overrides deep-merged into the upstream chart's `values.yaml` during `make sync`
+
+Workflow RBAC (`workflow.rbac.create: false`, `workflow.serviceAccount.create: false`) is disabled because workflows do not run in the supervisor namespace. Namespaces that want to run arokflows need handle their own RBAC.
+
 ## Development Workflow
+
+### Prerequisites
+
+- [`vendir`](https://carvel.dev/vendir/) — syncs the upstream Helm chart
+- [`kctrl`](https://carvel.dev/kapp-controller/docs/latest/kctrl-cli-reference/) — builds and releases Carvel packages
+- [`imgpkg`](https://carvel.dev/imgpkg/) — bundles the package as an OCI image
+- [`kbld`](https://carvel.dev/kbld/) — resolves image references
+- A container registry (default: `ghcr.io/warroyo/argo-workflows-supervisor-service`)
 
 ### 1. Sync the upstream chart
 
