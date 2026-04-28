@@ -15,14 +15,14 @@ metadata:
   name: argo-workflows.field.vmware.com.1.0.0
 spec:
   refName: argo-workflows.field.vmware.com
-  releasedAt: "2026-04-27T23:17:44Z"
+  releasedAt: "2026-04-28T14:28:59Z"
   template:
     spec:
       deploy:
       - kapp: {}
       fetch:
       - imgpkgBundle:
-          image: ghcr.io/warroyo/argo-workflows-supervisor-service@sha256:abbe586358a729c2dad38e623285f77a5963440059b33e9ef93b05ef4210a39c
+          image: ghcr.io/warroyo/argo-workflows-supervisor-service@sha256:aaf581c75a5617b446ece8446102ad13e4e69dcbb7d0649d3fe61bba637ed594
       template:
       - helmTemplate:
           name: argo-workflows
@@ -774,11 +774,13 @@ spec:
               type: object
             workflowNamespaces:
               default: []
-              description: Chart default is ["default"]. The chart appends the argo-workflows
-                namespace to this list, so leaving "default" in produces a Role in
-                the default namespace which the supervisor service account cannot
-                create. Empty scopes RBAC to the supervisor namespace only.
-              items: {}
+              description: Specify all namespaces where this workflow controller instance
+                will manage workflows. This controls where the service account and
+                RBAC resources will be created. Only valid when singleNamespace is
+                false.
+              items:
+                default: default
+                type: string
               type: array
             workflowRestrictions:
               default: {}
@@ -1762,6 +1764,9 @@ spec:
           description: Use static credentials for S3 (eg. when not using AWS IRSA)
           type: boolean
         workflow:
+          description: need to turn off wokrflow rbac becuase it creates in the installed
+            ns  this is not needed becuase in supervisor we don't deploy workflows
+            into  the installed ns
           properties:
             namespace:
               description: Deprecated; use controller.workflowNamespaces instead.
@@ -1798,7 +1803,7 @@ spec:
                     required if using artifact gc
                   type: boolean
                 create:
-                  default: true
+                  default: false
                   description: Adds Role and RoleBinding for the above specified service
                     account to be able to run workflows. A Role and Rolebinding pair
                     is also created for each namespace in controller.workflowNamespaces
